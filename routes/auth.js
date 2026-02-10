@@ -4,40 +4,54 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
+/* REGISTER */
 router.post("/register", async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ msg: "User exists" });
+    if (existingUser) {
+      return res.status(400).json({ msg: "User already exists" });
+    }
 
     const user = new User({ email, password });
     await user.save();
 
-    // ✅ FIXED: Added fallback secret
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "mySuperSecretKey123!", { expiresIn: '24h' });
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
     res.json({ token, user: { id: user._id, email } });
   } catch (err) {
-    console.error("Register error:", err);
     res.status(500).json({ msg: err.message });
   }
 });
 
+/* LOGIN */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
-    
-    // ✅ Added null check
-    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
-    
-    if (!(await user.comparePassword(password))) {
+    if (!user) {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "mySuperSecretKey123!", { expiresIn: '24h' });
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
     res.json({ token, user: { id: user._id, email } });
   } catch (err) {
-    console.error("Login error:", err);
     res.status(500).json({ msg: err.message });
   }
 });

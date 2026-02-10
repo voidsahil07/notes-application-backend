@@ -19,16 +19,18 @@ const httpServer = createServer(app);
 ======================= */
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://notes-application-frontend-o3virl133-voidsahil07s-projects.vercel.app" // 🔁 replace with your real Vercel URL
+  "https://notes-application-frontend-o3virl133-voidsahil07s-projects.vercel.app"
 ];
 
 /* =======================
-   CORS (EXPRESS)
+   CORS
 ======================= */
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true
+  })
+);
 
 app.use(express.json());
 
@@ -38,7 +40,8 @@ app.use(express.json());
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
